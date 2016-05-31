@@ -3,9 +3,6 @@ import time
 
 stack_memos = {}
 total_memos = {}
-total_memos[''] = ''
-trailing_memo_1 = ''
-trailing_memo_2 = ''
 
 _total = []
 _current = ''
@@ -14,29 +11,56 @@ _length = 0
 bricks = ['2', '3']
 brick_index = 0
 
-# Brick row operations
+delete_counter = 0
+trailing_memo = ''
+
+del_counter = 0
+max_counter = 10000000
+
+
+def create_memo():
+    global _total, brick_index, _current
+    return str(_total) + str(brick_index)  + _current
 
 def add(brick):
     global _current, _length
+    global delete_counter
+
+    delete_counter = 0
     _current += brick
     _length += int(brick)
 
+def deep_copy():
+    global total_memos
+    copy_dict = {}
+    for k, v in total_memos.iteritems():
+        if v is not None:
+            copy_dict[k] = True
+    del total_memos
+    total_memos = copy_dict
+
 def delete():
     global _current, _length
+    global delete_counter, del_counter, max_counter
+
+    del_counter += 1
+    delete_counter += 1
+    if del_counter > max_counter:
+        deep_copy()
+        del_counter = 0
+    if (delete_counter > 1):
+        trailing_memo = create_memo()
+        h = hashlib.md5()
+        h.update(trailing_memo)
+        memo = h.digest()
+        del total_memos[memo]
+
     try:
         _length -= int(_current[-1])
     except IndexError:
         _length = 0
     _current = _current[:-1]
-    trail()
 
-def trail():
-    global trailing_memo_2, trailing_memo_1, total_memos, _current, _total, brick_index
-    #stack_memos.pop(trailing_memo_2, None)
-    #del total_memos[trailing_memo_2]
-    total_memos.pop(trailing_memo_2, None)
-    trailing_memo_2 = trailing_memo_1
-    trailing_memo_1 = str(_total) + str(brick_index)  + _current
 
 def push():
     global _total, _current, _length
@@ -82,10 +106,10 @@ def over():
 
 def unique():
     global brick_index, _total, _current
-    #s = str(brick_index) +'|' +  ''.join(_total) + '|' + _current
 
     h = hashlib.md5()
-    s = str(_total) + str(brick_index)  + _current
+    #s = str(_total) + str(brick_index)  + _current
+    s = create_memo()
     h.update(s)
     memo = h.digest()
     if memo in total_memos:
@@ -119,16 +143,15 @@ def stackable():
                 stack_memos[memo] = False
                 return False
 
-    stack_memos[memo] = True
-    print 'found new stack memo - ' + memo
-    return True
+        stack_memos[memo] = True
+        return True
 
 def run():
     global bricks, brick_index, _length, height, width
     current_brick = ''
     rows = 0
 
-    solutions = []
+    solutions = 0
     
     while not (_current == '' and brick_index == len(bricks)):
         #print "current         = '" + _current + "'"
@@ -177,7 +200,8 @@ def run():
             #print 'rows          = ' + str(rows)
             if rows == height:
                 #print 'found new solution = ' + str(_total)
-                solutions.append(_total[:])
+                #solutions.append(_total[:])
+                solutions += 1
                 pop()
                 rows -= 1
                 delete()
@@ -189,27 +213,30 @@ def run():
 
 
         #print '-----------------------'
-    return len(solutions)
+    return solutions
 
 
-def reset():
+def init(width, height):
     global stack_memos, total_memos, _total, _current, _length, brick_index
-    global trailing_memo_1, trailing_memo_2
     stack_memos.clear()
     total_memos.clear()
     _total = []
     _current = ''
     _length = 0
     brick_index = 0
-    trailing_memo_1 = ''
-    trailing_memo_2 = ''
+    counter = 0
 
 if __name__ == "__main__":
     global height, width
     for i in range(1, 11):
+
         height = i
         width = 32
+
+        init(width, height)
+
         time1 = time.time()
+
         solutions = run()
 
         time2 = time.time()
@@ -217,4 +244,3 @@ if __name__ == "__main__":
         print 'solutions   = ' + str(solutions)
         print 'time delta  = %0.3f seconds' % (time2 - time1)
 
-        reset()
