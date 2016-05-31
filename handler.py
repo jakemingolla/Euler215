@@ -1,8 +1,11 @@
-# Jake Mingolla
-# May 31st, 2016
-# GreatHorn Coding Test
+#                              Jake Mingolla
+#                             May 31st, 2016
+#                           GreatHorn Coding Test
 #
-# README
+#                               README
+#
+#
+#                               Description
 #
 # This script calculates the number of unique solutions to build walls
 # made of bricks. For the sake of avoiding rounding errors for floating
@@ -55,50 +58,125 @@
 # we know we have reached a non-unique configuration and we can roll
 # back the most recently placed brick.
 #
+# Moreover, we attempt to free memory by deleting 'trailing' configurations
+# that are unreachable by the current state. Each time we delete a brick,
+# we also delete the most recent configuration of the bricks calculated.
+# Since we are deleting a brick, we know that all further possible solutions
+# with the current configuration are impossible. Thus, we delete the trailing
+# configuration to allow us to keep a more balanced memory overhead.
 #
+# The program continues to run until all configurations have been calculated
+# for the given width and height.
 #
-# USAGE
+#                               RESULTS
+#
+# Note: As specified above, the sizes provided in the instruction sheet have
+# been reduced to integer form. So, instead of 3 and 4.5 feet long bricks
+# composing a 48 foot long wall, we instead use 2 and 3 feet long bricks to
+# compose a 32 foot long wall. The height is unchanged.
+#
+# HEIGHT            SOLUTIONS           COMPUTATION TIME (seconds)
+# ------            ---------           ----------------
+# 1                 3329                0.092
+#
+# 2                 37210               5.382
+#
+# 3                 592050              46.437
+#
+# >4                n/a                 n/a
+#
+# As these results show, for greater than 3 rows we run into memory leaks 
+# and the program halts after running for a considerable amount of time.
+# Because of the exponential blowup in the number of solutions as a function
+# of the rows, I was curious to see if I could extrapolate this to estimate
+# an answer for 10 rows. Using Wolfram-Alpha's best fit line given the
+# above points, I have the following function to estimate the number of solutions
+# given a height:
+#
+#       f ( x ) = solutions ( height ) = 147.387 e ^ ( 2.766 * height )
+#
+# We can plug in the height of 10 to estimate a total of ~ 1.518 * 10 ^ 14,
+# or just over 100 trillion solutions. To even store these valid configurations 
+# (and also keep in mind this estimate is only the VALID solutions, not all
+# the configurations created during computation) in memory would require 
+# extreme storage capacity. I am interested to see if optimizations to
+# the removal of trailing impossible configurations could lead to be calculated.
+#
+#                               USAGE
 #
 # python handler.py
+#
+# Type each brick size as given, then press 0 to stop. Enter the width and height.
+# All input must be integers. I didn't bother that much to clean input, so crazy
+# stuff will almost invariably happen if a user tries to mess with the program.
 # 
 # python runtime - 2.7
 
+# Imported for md5 hashing of configurations.
 import hashlib
+
+# Used for rough time calculations of runtime.
 import time
 
+# Memoization dictionaries to hold the hashed configurations for checking stackability
+# and uniqueness, respectively.
 stack_memos = {}
 total_memos = {}
 
-_total = []
-_current = ''
-_length = 0
+# Holds the current completed brick portion.
+total = []
 
-bricks = ['2', '3']
+# Holds the leading row on which bricks can be added.
+current = ''
+
+# Holds the length (in feet) of the current row.
+length = 0
+
+# The current brick index is necessary to figure out
+# what brick is going to be added next from the list of
+# valid bricks.
 brick_index = 0
 
+# Holds on to the number of deletes since the last 
+# add to know if we can delete current configurations.
 trailing_counter = 0
 trailing_memo = ''
 
 def create_memo():
-    global _total, brick_index, _current
-    return str(_total) + str(brick_index)  + _current
+    ''' Creates a memo of the current configuration. A memo consists
+        the total completed brick wall, the brick index, and the current
+        row.
+    ''' 
+    global total, brick_index, current
+    return str(total) + str(brick_index)  + current
 
 def create_hash(x):
+    ''' Creates a hash of a given input using an md5 hash.
+    '''
     h = hashlib.md5()
     h.update(x)
     return h.digest()
 
 def add(brick):
-    global _current, _length
+    ''' Adds a given brick to the current row and increments the
+        length accordingly. Also resets the trailing counter since
+        we can no longer delete past (and maybe valid) configurations.
+    '''
+    global current, length
     global trailing_counter
 
     trailing_counter = 0
 
-    _current += brick
-    _length += int(brick)
+    current += brick
+    length += int(brick)
 
 
 def trail():
+    ''' If we are trailing a previously invalid solution by finding
+        two deletes in a row, start deleting the total_memos of the
+        invalid solutions since they will no longer be reachable and
+        are taking up memory.
+    '''
     global trailing_counter, total_memos
 
     trailing_counter += 1
@@ -110,41 +188,57 @@ def trail():
 
 
 def delete():
-    global _current, _length
+    ''' Deletes the leading brick from the current row.
+    '''
+    global current, length
     trail()
 
     try:
-        _length -= int(_current[-1])
+        length -= int(current[-1])
     except IndexError:
-        _length = 0
-    _current = _current[:-1]
+        length = 0
+    current = current[:-1]
 
 
 def push():
-    global _total, _current, _length
-    _total.insert(0, _current)
-    _current = ''
-    _length = 0
+    ''' Pushes the current row onto the total wall configuration.
+        Resets the current row string and its length.
+    '''
+    global total, current, length
+    total.insert(0, current)
+    current = ''
+    length = 0
 
 def pop():
-    global _total, _current, _length
+    ''' Pops off the most recent row from the total wall and updates
+        current string and length.
+    '''
+    global total, current, length
     try:
-        _current = _total.pop(0)
-        _length = width
+        current = total.pop(0)
+        length = width
     except IndexError:
-        _current = ''
-        _length = 0
+        current = ''
+        length = 0
 
 def exact():
-    global _length, width
-    return _length == width
+    ''' Returns whether or not the current row fills the width of the wall
+        exactly.
+    '''
+    global length, width
+    return length == width
 
 def over():
-    global _length, width
-    return _length > width
+    ''' Returns whether or not the current row is over the wall limit.
+    '''
+    global length, width
+    return length > width
 
 def unique():
-    global brick_index, _total, _current
+    ''' Using memoization, returns whether or not a current configuration
+        has been reached using a hash of the current information.
+    '''
+    global brick_index, total, current
 
     memo = create_hash(create_memo())
     if memo in total_memos:
@@ -154,13 +248,21 @@ def unique():
         return True
 
 def stackable():
+    ''' Using memoization, returns whether or not the current row can be
+        stacked on the previous row (the most recently added row to the 
+        total configuration. If it has previously been computed if the two
+        rows are compatible, it will look in the stack_memos dictionary.
+        Otherwise, the breaks in the two rows are compared and if they
+        share any similarities other than the endpoints they are incompatible.
+    '''
     global stack_memos
 
-    if len(_total) == 0:
+    # If there are no rows to stack on, it is by definition stackable.
+    if len(total) == 0:
         return True
 
-    prev = _total[0]
-    memo = create_hash(_current + prev)
+    prev = total[0]
+    memo = create_hash(current + prev)
 
     if memo in stack_memos:
         return stack_memos[memo]
@@ -168,8 +270,14 @@ def stackable():
         return breaks_exist(memo)
 
 def breaks_exist(memo):
-    global stack_memos, _total, _current
-    prev = _total[0]
+    ''' Calculates if breaks exist between the current and previous rows.
+        Iterates between each row and creates a break dictionary - if either
+        share a break other than the width, they are incompatible. Stores
+        the result under the given memo into the stack_memos dictionary
+        and returns the result.
+    '''
+    global stack_memos, total, current
+    prev = total[0]
     breaks = {}
     counter = 0
 
@@ -179,7 +287,7 @@ def breaks_exist(memo):
 
     counter = 0
 
-    for x in list(_current):
+    for x in list(current):
         counter += int(x)
         if counter in breaks and counter != width:
             stack_memos[memo] = False
@@ -189,34 +297,65 @@ def breaks_exist(memo):
     return True
 
 def run():
-    global bricks, brick_index, _length, height, width
-    current_brick = ''
-    rows = 0
+    ''' Handles logic for running the simulation. Returns the total number of
+        solutions found.
 
+        Raises a MemoryError if exceeding the memory bounds of the machine.
+    '''
+    global bricks, brick_index, length, height, width
+    
+    # The brick about to be added. Related to the possible brick dictionary.
+    current_brick = ''
+    
+    # Number of rows we have calculated. Relates the height.
+    rows = 0
+    
+    # Number of valid solutions
     solutions = 0
     
-    while not (_current == '' and brick_index == len(bricks)):
+    # The loop ends when we have an empty current row and the brick
+    # index indicates we have started all possible configurations of
+    # the bricks.
+    while not (current == '' and brick_index == len(bricks)):
+        # If the brick index is outside the number of total bricks,
+        # delete the last brick and pop if we deleted the last
+        # brick of the current row.
         if brick_index >= len(bricks):
             brick_index = 0
             delete()
-            if _length == 0:
+            if length == 0:
                 pop()
                 rows -= 1
                 if (rows < 0):
                     rows = 0
             continue
-
+    
+        # If we have reached a non-unique solution that has been previously
+        # reached, instead of adding the current brick we simply increment
+        # the brick index to try all other possible bricks for the current
+        # configuration of the current row and total wall.
         if not unique():
             brick_index += 1
             continue
-
+    
+        # Adds the given brick to the current row since we know we have
+        # not yet seen this configuration.
         current_brick = bricks[brick_index]
         add(current_brick)
-
+    
+        # If we are over the limit or the wall or the current row
+        # cannot be stacked on the previous row now that we have added
+        # another brick, remove the brick and increment the brick
+        # index.
         if over() or not stackable():
             delete()
             brick_index += 1
             continue
+    
+        # Or, if we have filled the current row, add this row
+        # to the total wall since it must be stackable. If we have reached
+        # the desired height of the wall, we have found a solution and the
+        # current row can be popped off and deleted.
         elif exact():
             push()
             rows += 1
@@ -226,16 +365,21 @@ def run():
                 rows -= 1
                 delete()
             brick_index = 0
-
+    
+        # Otherwise, we have reached a configuration that is stackable, unique,
+        # and within the bounds of the row. Simply reset the brick index so
+        # we know we can cover all possible configurations that branch off of
+        # this one and continue the loop.
         else:
             brick_index = 0
-
-
+    
+    
+    # Finally, return the number of solutions.
     return solutions
 
 
 def init(width, height):
-    global stack_memos, total_memos, _total, _current, _length, brick_index
+    global stack_memos, total_memos, total, current, length, brick_index
     
     # Technically, since the stack_memos are the same for every configuration
     # with the same width, there is no reason to clear it here. I decided
@@ -243,28 +387,40 @@ def init(width, height):
     # init() function.
     stack_memos.clear()
     total_memos.clear()
-    _total = []
-    _current = ''
-    _length = 0
+    total = []
+    current = ''
+    length = 0
     brick_index = 0
     counter = 0
 
 if __name__ == "__main__":
-    global height, width
-    for i in range(1, 11):
+    global height, width, bricks
 
-        height = i
-        width = 32
+    bricks = []
 
-        init(width, height)
+    # Get all valid bricks and add them to the list. Ends when a
+    # brick of size 0 is inputted.
+    x = -1
+    while (x != 0):
+        x = input('Enter a valid brick size. Press 0 to stop : ')
+        if x != 0:
+            bricks.append(str(x))
 
-        time1 = time.time()
+    height = input('Enter the height : ')
+    width = input('Enter the width : ')
 
-        solutions = run()
+    # Basic sanity check
+    assert(height > 0)
+    assert(width > 0)
 
-        time2 = time.time()
-        print 'height      = ' + str(height)
-        print 'solutions   = ' + str(solutions)
-        print len(stack_memos.keys())
-        print 'time delta  = %0.3f seconds' % (time2 - time1)
+    init(width, height)
+
+    time1 = time.time()
+
+    solutions = run()
+
+    time2 = time.time()
+    print 'height      = ' + str(height)
+    print 'solutions   = ' + str(solutions)
+    print 'time delta  = %0.3f seconds' % (time2 - time1)
 
