@@ -109,8 +109,11 @@
 # Type each brick size as given, then press 0 to stop. Enter the width and height.
 # All input must be integers. I didn't bother that much to clean input, so crazy
 # stuff will almost invariably happen if a user tries to mess with the program.
+#
+# The program will respond with the number of solutions as well as the time
+# in second since the program began calculation.
 # 
-# python runtime - 2.7
+# (python runtime - 2.7)
 
 # Imported for md5 hashing of configurations.
 import hashlib
@@ -420,7 +423,6 @@ if __name__ == "__main__":
     solutions = run()
 
     time2 = time.time()
-    print 'height      = ' + str(height)
     print 'solutions   = ' + str(solutions)
     print 'time delta  = %0.3f seconds' % (time2 - time1)
 
