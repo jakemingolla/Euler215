@@ -126,11 +126,20 @@ import time
 stack_memos = {}
 total_memos = {}
 
+<<<<<<< HEAD:handler.py
 # Holds the current completed brick portion.
 total = []
 
 # Holds the leading row on which bricks can be added.
 current = ''
+=======
+_total = []
+_current = 0
+_length = 0
+
+bricks = [2, 3]
+brick_index = 0
+>>>>>>> 44ed620bbe34c629e985f9adb4dee956e04f2bcb:py_src/handler.py
 
 # Holds the length (in feet) of the current row.
 length = 0
@@ -161,6 +170,7 @@ def create_hash(x):
     return h.digest()
 
 def add(brick):
+<<<<<<< HEAD:handler.py
     ''' Adds a given brick to the current row and increments the
         length accordingly. Also resets the trailing counter since
         we can no longer delete past (and maybe valid) configurations.
@@ -211,6 +221,23 @@ def push():
     total.insert(0, current)
     current = ''
     length = 0
+=======
+    global _current, _length
+    _current = _current * 10
+    _current += brick
+    _length += brick
+
+def delete():
+    global _current, _length
+    _length -= (_current % 10)
+    _current //= 10
+
+def push():
+    global _total, _current, _length
+    _total.insert(0, _current)
+    _current = 0
+    _length = 0
+>>>>>>> 44ed620bbe34c629e985f9adb4dee956e04f2bcb:py_src/handler.py
 
 def pop():
     ''' Pops off the most recent row from the total wall and updates
@@ -221,8 +248,23 @@ def pop():
         current = total.pop(0)
         length = width
     except IndexError:
+<<<<<<< HEAD:handler.py
         current = ''
         length = 0
+=======
+        _current = 0
+        _length = 0
+
+
+#def prev(index):
+#    global _prev
+#    return int(_prev[index])
+
+def under():
+    global _length, width
+
+    return _length < width
+>>>>>>> 44ed620bbe34c629e985f9adb4dee956e04f2bcb:py_src/handler.py
 
 def exact():
     ''' Returns whether or not the current row fills the width of the wall
@@ -238,6 +280,7 @@ def over():
     return length > width
 
 def unique():
+<<<<<<< HEAD:handler.py
     ''' Using memoization, returns whether or not a current configuration
         has been reached using a hash of the current information.
     '''
@@ -245,6 +288,15 @@ def unique():
 
     memo = create_hash(create_memo())
     if memo in total_memos:
+=======
+    global brick_index, _total, _current
+    #s = str(brick_index) +'|' +  ''.join(_total) + '|' + _current
+    s = str(brick_index) + '|' + str(_total) + '|' + str(_current)
+    h = hashlib.md5()
+    h.update(s)
+    s = h.digest()
+    if s in total_memos:
+>>>>>>> 44ed620bbe34c629e985f9adb4dee956e04f2bcb:py_src/handler.py
         return False
     else:
         total_memos[memo] = True
@@ -264,11 +316,17 @@ def stackable():
     if len(total) == 0:
         return True
 
+<<<<<<< HEAD:handler.py
     prev = total[0]
     memo = create_hash(current + prev)
+=======
+    _prev = _total[0]
+    memo = str(_current) + '|' + str(_prev)
+>>>>>>> 44ed620bbe34c629e985f9adb4dee956e04f2bcb:py_src/handler.py
 
     if memo in stack_memos:
         return stack_memos[memo]
+<<<<<<< HEAD:handler.py
     else:
         return breaks_exist(memo)
 
@@ -311,8 +369,42 @@ def run():
     current_brick = ''
     
     # Number of rows we have calculated. Relates the height.
+=======
+    except KeyError:
+        cur_breaks = _length
+        prev_breaks = width
+        cur = _current
+        #TODO FIX ME
+        prev = _prev
+
+        while cur and prev:
+            #print 'cur_breaks = ' + str(cur_breaks)
+            #print 'prev_breaks = ' + str(prev_breaks)
+            #print 'cur = ' + str(cur)
+            #print 'prev = ' + str(prev)
+            if (prev_breaks < prev_breaks):
+                cur_breaks -= (cur % 10)
+                cur //= 10
+                if cur_breaks != 0 and cur_breaks == prev_breaks:
+                    stack_memos[memo] = False
+                    return False
+            else:
+                prev_breaks -= (prev % 10)
+                prev //= 10
+                if prev_breaks != 0 and prev_breaks == cur_breaks:
+                    stack_memos[memo] = False
+                    return False
+
+        stack_memos[memo] = True
+        return True
+
+def main():
+    global bricks, brick_index, _length
+    current_brick = 0
+>>>>>>> 44ed620bbe34c629e985f9adb4dee956e04f2bcb:py_src/handler.py
     rows = 0
     
+<<<<<<< HEAD:handler.py
     # Number of valid solutions
     solutions = 0
     
@@ -323,6 +415,14 @@ def run():
         # If the brick index is outside the number of total bricks,
         # delete the last brick and pop if we deleted the last
         # brick of the current row.
+=======
+    while not (_current == 0 and brick_index == len(bricks)):
+        #print "current         = " + str(_current)
+        #print "total           = " + str(_total)
+        #print "brick index     = " + str(brick_index)
+        #print "_length         = " + str(_length)
+        #print "_rows           = " + str(rows)
+>>>>>>> 44ed620bbe34c629e985f9adb4dee956e04f2bcb:py_src/handler.py
         if brick_index >= len(bricks):
             brick_index = 0
             delete()
@@ -345,12 +445,20 @@ def run():
         # not yet seen this configuration.
         current_brick = bricks[brick_index]
         add(current_brick)
+<<<<<<< HEAD:handler.py
     
         # If we are over the limit or the wall or the current row
         # cannot be stacked on the previous row now that we have added
         # another brick, remove the brick and increment the brick
         # index.
         if over() or not stackable():
+=======
+        #print 'adding ' + str(current_brick)
+
+        if over():
+            #print 'over, deleting'
+            #print '-----------------------'
+>>>>>>> 44ed620bbe34c629e985f9adb4dee956e04f2bcb:py_src/handler.py
             delete()
             brick_index += 1
             continue
@@ -399,6 +507,7 @@ def init(width, height):
 if __name__ == "__main__":
     global height, width, bricks
 
+<<<<<<< HEAD:handler.py
     bricks = []
 
     # Get all valid bricks and add them to the list. Ends when a
@@ -426,3 +535,7 @@ if __name__ == "__main__":
     print 'solutions   = ' + str(solutions)
     print 'time delta  = %0.3f seconds' % (time2 - time1)
 
+=======
+if __name__ == "__main__":
+    main()
+>>>>>>> 44ed620bbe34c629e985f9adb4dee956e04f2bcb:py_src/handler.py

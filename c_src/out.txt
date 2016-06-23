@@ -1,0 +1,97 @@
+and = 0
+mask = 1
+
+and = 0
+mask = 2
+
+and = 0
+mask = 4
+
+and = 8
+mask = 8
+
+and = 0
+mask = 16
+
+and = 0
+mask = 32
+
+and = 0
+mask = 64
+
+and = 0
+mask = 128
+
+and = 0
+mask = 256
+
+and = 0
+mask = 512
+
+and = 0
+mask = 1024
+
+and = 0
+mask = 2048
+
+and = 0
+mask = 4096
+
+and = 0
+mask = 8192
+
+and = 0
+mask = 16384
+
+and = 0
+mask = 32768
+
+and = 0
+mask = 65536
+
+and = 0
+mask = 131072
+
+and = 0
+mask = 262144
+
+and = 0
+mask = 524288
+
+and = 0
+mask = 1048576
+
+and = 0
+mask = 2097152
+
+and = 0
+mask = 4194304
+
+and = 0
+mask = 8388608
+
+and = 0
+mask = 16777216
+
+and = 0
+mask = 33554432
+
+and = 0
+mask = 67108864
+
+and = 0
+mask = 134217728
+
+and = 0
+mask = 268435456
+
+and = 0
+mask = 536870912
+
+and = 0
+mask = 1073741824
+
+and = 0
+mask = -2147483648
+
+
