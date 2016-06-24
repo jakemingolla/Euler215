@@ -26,10 +26,8 @@ main() {
 	fflush(stdout);
 	int buf[MAX_CRACKS] = {0};
 	wall_row allrows = new_wall_row(buf);
-    fprintf(stdout, "MAX_CRACKS = %d\n", MAX_CRACKS);
 	gen_rows(allrows, 0, buf, 0);
 	printf("%d rows generated\n", ll_listlen(allrows->list));
-    return 0;
 
 	printf("Linking rows... ");
 	fflush(stdout);

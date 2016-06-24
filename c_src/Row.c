@@ -11,7 +11,7 @@ Row init_row() {
 }
 
 bool stackable(Row first, Row second) {
-    return !(first & second);
+    return !((first - 1) & (second - 1));
 }
 
 void print_row(FILE *f, Row r) {
