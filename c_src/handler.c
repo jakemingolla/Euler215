@@ -1,5 +1,8 @@
 #include "Row.h"
 #include "Node.h"
+#include "stdlib.h"
+
+#include "time.h"
 
 void generate_rows(Node **head, Row current, int len) {
         if (len > WALL_WIDTH) return;
@@ -32,28 +35,61 @@ int generate_stacks(Node *head) {
         return combinations;
 }
 
-int main(int argc, char* argv[]) {
-        Node *head = NULL;
-        Row current = init_row();
-        generate_rows(&head, current, 0);
-        fprintf(stdout, "number of rows = %d\n", len(head));
-        fprintf(stdout, "generating stacks...\n");
-        int combinations = generate_stacks(head);
-        fprintf(stdout, "Done generating stacks\n");
-        fprintf(stdout, "number of combos = %d\n", combinations);
+unsigned long long build_wall(Node *current, int row) {
+        if (row == (WALL_HEIGHT - 2)) {
+                return current->size; 
+        } else if (current->solutions[row] != SENTINEL) {
+                return current->solutions[row];
+        } else {
+                unsigned long long count = 0;
+                int i;
+                int len = current->size;
+                for (i = 0; i < len; i++) {
+                        count += build_wall(current->stacks[i], row+1);
+                }
+                current->solutions[row] = count;
+                return count;
+        }
+}
 
+unsigned long long generate_solutions(Node *head) {
+        unsigned long long solutions = 0;
         Node *iter = head;
         while (iter != NULL) {
-                fprintf(stdout, "found row: ");
-                print_row(stdout, iter->data);
-                int h = iter->size;
-                fprintf(stdout, "it can stack with %d rows\n", h);
-                int i;
-                for (i = 0; i < h; i++) {
-                        print_row(stdout, iter->stacks[i]->data);
-                }
-                fprintf(stdout, "\n");
+                solutions += build_wall(iter, 0);
                 iter = iter->next;
         }
+
+        return solutions;
+}
+
+void destroy(Node *head) {
+        Node *trail = head;
+        Node *iter = head;
+
+        while (iter != NULL) {
+                free(iter->stacks);
+                free(iter->solutions);
+                trail = iter;
+                iter = iter->next;
+                free(trail);
+        }
+}
+
+int main(int argc, char* argv[]) {
+        clock_t before = clock();
+
+        Node *head = NULL;
+        Row current = init_row();
+
+        generate_rows(&head, current, 0);
+        generate_stacks(head);
+        unsigned long long solutions = generate_solutions(head);
+
+        fprintf(stdout, "number of solutions = %llu\n", solutions);
+        destroy(head);
+
+        clock_t after = clock();
+        fprintf(stdout, "Elapsed: %f secondds\n", (double)(after - before) / CLOCKS_PER_SEC);
         return 0;
 }

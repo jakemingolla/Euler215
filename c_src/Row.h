@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #define WALL_WIDTH 32
+#define WALL_HEIGHT 10
 typedef uint32_t Row;
 
 void print_row(FILE *stream, Row r);

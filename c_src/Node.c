@@ -9,6 +9,11 @@ Node *init_node(Row data) {
     n->stacks = (Node **)malloc(sizeof(Node *) * BASE_CAPACITY);
     n->capacity = BASE_CAPACITY;
     n->size = 0;
+    n->solutions = (unsigned long long *)malloc(sizeof(unsigned long long) * WALL_HEIGHT);
+    int i;
+    for(i = 0; i < WALL_HEIGHT; i++) {
+            n->solutions[i] = SENTINEL;
+    }
     return n;
 }
 

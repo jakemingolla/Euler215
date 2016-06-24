@@ -5,6 +5,7 @@
 #include "Row.h"
 
 #define BASE_CAPACITY 64
+#define SENTINEL -1
 
 typedef struct Node {
                 int size;
@@ -12,6 +13,7 @@ typedef struct Node {
                 Row data;
                 struct Node *next;
                 struct Node **stacks;
+                unsigned long long *solutions;
 
 } Node;
 
