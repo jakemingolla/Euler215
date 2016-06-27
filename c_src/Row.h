@@ -9,8 +9,6 @@
 #define WALL_HEIGHT 10
 typedef uint32_t Row;
 
-void print_row(FILE *stream, Row r);
-
 Row add_crack(Row r, int index);
 bool stackable(Row first, Row second);
 Row init_row();
