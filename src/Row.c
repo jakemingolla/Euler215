@@ -11,11 +11,13 @@
  
 #include "Row.h"
 
+const uint64_t WALL_MASK = 1ULL << (WALL_WIDTH - 1);
+
 /*
  * Adds a crack to the given row at the specified index.
  */
 Row add_crack(Row r, int index) {
-        return r |= (1 << index);
+        return r |= (1ULL << index);
 }
 
 /*
@@ -34,5 +36,10 @@ Row init_row() {
  * WALL_WIDTH units long.
  */
 bool stackable(Row first, Row second) {
+        return !((first - WALL_MASK) & (second - WALL_MASK));
+        /*
+        return !((first - mask) & (second - mask));
         return !((first - 1) & (second - 1));
+        return !((first - 1) & (second - 1));
+        */
 }

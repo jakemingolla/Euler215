@@ -24,7 +24,7 @@
 // Default width and heights of the brick wall.
 #define WALL_WIDTH 32
 #define WALL_HEIGHT 10
-typedef uint32_t Row;
+typedef uint64_t Row;
 
 Row add_crack(Row r, int index);
 bool stackable(Row first, Row second);

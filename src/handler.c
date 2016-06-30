@@ -53,11 +53,11 @@
 void generate_rows(Node **head, Row current, int len) {
         // If we have created a row that is too far over the wall,
         // we discard it as it is by definition invalid.
-        if (len > WALL_WIDTH) return;
+        if (len > (WALL_WIDTH - 1)) return;
 
         // If we are exactly at the wall width, we create a new Node
         // object and append it to the head of the linked list.
-        else if (len == WALL_WIDTH) {
+        else if (len == (WALL_WIDTH - 1)) {
                 Node *n = init_node(current);
                 (*head) = append(*head, n);
 
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
         Node *head = NULL;
         Row current = init_row();
 
-        generate_rows(&head, current, 0);
+        generate_rows(&head, current, -1);
         generate_stacks(head);
         unsigned long long solutions = generate_solutions(head);
 
